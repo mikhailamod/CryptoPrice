@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BitcoinPrice</string>
+    <string-array name="cryptos">
+        <item>Bitcoin</item>
+        <item>Ethereum</item>
+        <item>OmiseGO</item>
+    </string-array>
+</resources>
