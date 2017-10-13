@@ -40,12 +40,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     TextView graph_title;
     Spinner spinner;
     Switch toggleButton;
+
     Button button_refresh;
+    Button button_one_week;
+    Button button_two_weeks;
+    Button button_one_month;
+    Button button_two_months;
+
     static String SOURCE_URL = "https://api.coinmarketcap.com/v1/ticker/";
     static String WEEK_URL = "https://min-api.cryptocompare.com/data/histoday?";
     boolean rand;
     LineChart mainGraph;
-    ArrayList<Entry> mainGraphSeries;
+    ArrayList<Entry> graphEntries;//List of entries for graph
     ImageView logo;
 
     Cryptocurrency[] cryptocurrencyList = {new Cryptocurrency("Bitcoin", "bitcoin", "btc"), new Cryptocurrency("Ethereum", "ethereum", "eth"), new Cryptocurrency("OmiseGO", "omisego", "omg")};
@@ -58,19 +64,55 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
 
         rand = false;
-        numberOfDays = 14;//the number of days for the graph to display
+        numberOfDays = 7;//the number of days for the graph to display
 
         progressBar = (ProgressBar)findViewById(R.id.progressBar);
         spinner = (Spinner)findViewById(R.id.spinner);
+
         button_refresh = (Button)findViewById(R.id.button_refresh);
+        button_one_week = (Button)findViewById(R.id.day_seven);
+        button_two_weeks = (Button)findViewById(R.id.days_fourteen);
+        button_one_month= (Button)findViewById(R.id.days_thirty);
+        button_two_months = (Button)findViewById(R.id.days_sixty);
+
+        //Set on click listeners for buttons
         button_refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 performTask(false);
             }
         });
+        button_one_week.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                numberOfDays = 7;
+                new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
+            }
+        });
+        button_two_weeks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                numberOfDays = 14;
+                new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
+            }
+        });
+        button_one_month.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                numberOfDays = 30;
+                new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
+            }
+        });
+        button_two_months.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                numberOfDays = 60;
+                new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
+            }
+        });
+
         mainGraph = (LineChart) findViewById(R.id.main_graph);
-        mainGraphSeries = new ArrayList<>();
+        graphEntries = new ArrayList<>();
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.cryptos, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -122,30 +164,55 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         new RetrieveCurrentPrice().execute(activeCryptocurrency);
         logo.setImageResource(getLogoID(activeCryptocurrency));
         if(graph) {
-            new RetrieveHistory().execute(activeCryptocurrency);
+            new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
         }
     }
 
     public void populateGraph(float[] values, long[] timestamps)
     {
-        GregorianCalendar gc = new GregorianCalendar();
-        mainGraphSeries = new ArrayList<>();
+        String[] xAxisValues = new String[numberOfDays];//The array to hold the axis labels
+
+        GregorianCalendar gc = new GregorianCalendar();//Calendar needed to convert epoch timestamps to date
+        graphEntries = new ArrayList<>();
+
+        //Add entries to mainGraph
         for(int i=0;i<values.length;i++)
         {
-            gc.setTimeInMillis(timestamps[i]*1000);
+            gc.setTimeInMillis(timestamps[i]*1000);// multiply by 1000 bc Java uses milliseconds, API uses seconds
             int day = gc.get(Calendar.DAY_OF_MONTH);
-            mainGraphSeries.add(new Entry(day, values[i]));
+            int month =  gc.get(Calendar.MONTH) + 1;
+            xAxisValues[i] = day + "/" + month;//Add date to list
+            graphEntries.add(new Entry(i, values[i]));
         }
-        LineDataSet dataSet = new LineDataSet(mainGraphSeries, null);
-        dataSet.setColor(Color.BLUE);
-        LineData lineData = new LineData(dataSet);
-        mainGraph.setData(lineData);
-        mainGraph.setDescription(null);
-        Legend legend = mainGraph.getLegend();
-        legend.setEnabled(false);
+
+        XAxisFormatter formatter = new XAxisFormatter(xAxisValues);
+        //Set axis values and format
         XAxis xAxis = mainGraph.getXAxis();
+        xAxis.setValueFormatter(formatter);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
+
+        LineDataSet dataSet = new LineDataSet(graphEntries, null);
+        dataSet.setLineWidth(2);
+        dataSet.setColor(Color.parseColor("#64b5f6"));
+        dataSet.setValueTextSize(8);
+        dataSet.setCircleRadius(5);
+        dataSet.setCircleColor(Color.parseColor("#0077c2"));
+
+        LineData lineData = new LineData(dataSet);
+        lineData.setDrawValues(false);
+        mainGraph.setData(lineData);
+        mainGraph.setDescription(null);
+
+        Legend legend = mainGraph.getLegend();
+        legend.setEnabled(false);
+
+        mainGraph.setAutoScaleMinMaxEnabled(true);
+        //mainGraph.setMaxVisibleValueCount(7);
+
+        //Update graph
+        mainGraph.animateXY(1000,1000);
+        mainGraph.notifyDataSetChanged();
         mainGraph.invalidate();
     }
 
@@ -227,7 +294,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     {
         private Exception exception;
         private Cryptocurrency cryptocurrency;
-        private int numDays = 60;
+        private int numDays;
+
+        public RetrieveHistory(int numDays)
+        {
+            this.numDays = numDays;
+        }
 
         protected void onPreExecute()
         {
@@ -271,8 +343,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         protected void onPostExecute(String response)
         {
             CryptoPriceHistory ch = new CryptoPriceHistory(response, cryptocurrency, 60);
-            float[] values = ch.getPrices(numberOfDays);
-            long[] timestamps = ch.getTimestamps(numberOfDays);
+            float[] values = ch.getPrices(numDays);
+            long[] timestamps = ch.getTimestamps(numDays);
             progressBar.setVisibility(View.GONE);
             graph_title.setText(ch.getCryptocurrency().getName() + " Price Graph");
             populateGraph(values, timestamps);
