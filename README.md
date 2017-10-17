@@ -16,5 +16,6 @@ What can it currently do?
 2. View a graph of the selected cryptocurrency for the last 7, 14, 30 or 60 days.
 
 Features to implement soon:
-1. Choose 5 favourite coins
-2. Top 100 list
+1. Add dialog when clicking on specific point on graph.
+2. Choose 5 favourite coins
+3. Top 100 list
