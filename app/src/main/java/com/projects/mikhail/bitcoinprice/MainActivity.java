@@ -19,9 +19,12 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -37,15 +40,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ProgressBar progressBar;
     TextView textview_price;
     TextView textview_coin;
-    TextView graph_title;
+    TextView textview_graph_title;
+    TextView textview_graph_info;
     Spinner spinner;
-    Switch toggleButton;
 
     Button button_refresh;
     Button button_one_week;
     Button button_two_weeks;
     Button button_one_month;
     Button button_two_months;
+    Button button_select_currency;
 
     static String SOURCE_URL = "https://api.coinmarketcap.com/v1/ticker/";
     static String WEEK_URL = "https://min-api.cryptocompare.com/data/histoday?";
@@ -70,10 +74,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spinner = (Spinner)findViewById(R.id.spinner);
 
         button_refresh = (Button)findViewById(R.id.button_refresh);
+        button_select_currency = (Button)findViewById(R.id.button_currency);
         button_one_week = (Button)findViewById(R.id.day_seven);
         button_two_weeks = (Button)findViewById(R.id.days_fourteen);
         button_one_month= (Button)findViewById(R.id.days_thirty);
         button_two_months = (Button)findViewById(R.id.days_sixty);
+        button_one_week.setBackgroundColor(Color.parseColor("#b5ffff"));
+
+        textview_coin = (TextView)findViewById(R.id.textview_coin);
+        textview_coin.setText("");
+        textview_price = (TextView)findViewById(R.id.textview_price);
+        textview_price.setText("");
+        textview_graph_title = (TextView)findViewById(R.id.graph_title);
+        textview_graph_title.setText("");
+        textview_graph_info = (TextView)findViewById(R.id.graph_info);
+        textview_graph_info.setText("Last 7 Days");
 
         //Set on click listeners for buttons
         button_refresh.setOnClickListener(new View.OnClickListener() {
@@ -82,9 +97,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 performTask(false);
             }
         });
+        button_select_currency.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!rand)
+                {
+                    button_select_currency.setBackgroundColor(Color.parseColor("#b5ffff"));
+                    button_select_currency.setTextColor(Color.BLACK);
+                    rand = true;
+                    performTask(false);
+                }
+                else
+                {
+                    button_select_currency.setTextColor(Color.WHITE);
+                    button_select_currency.setBackgroundColor(Color.parseColor("#42a5f5"));
+                    rand = false;
+                    performTask(false);
+                }
+            }
+        });
         button_one_week.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                button_one_week.setBackgroundColor(Color.parseColor("#b5ffff"));
+                button_two_weeks.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_one_month.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_two_months.setBackgroundColor(Color.parseColor("#80d6ff"));
+                textview_graph_info.setText("Last 7 Days");
                 numberOfDays = 7;
                 new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
             }
@@ -92,6 +131,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         button_two_weeks.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                button_two_weeks.setBackgroundColor(Color.parseColor("#b5ffff"));
+                button_one_week.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_one_month.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_two_months.setBackgroundColor(Color.parseColor("#80d6ff"));
+                textview_graph_info.setText("Last 14 Days");
                 numberOfDays = 14;
                 new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
             }
@@ -99,6 +143,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         button_one_month.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                button_one_month.setBackgroundColor(Color.parseColor("#b5ffff"));
+                button_two_weeks.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_one_week.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_two_months.setBackgroundColor(Color.parseColor("#80d6ff"));
+                textview_graph_info.setText("Last 30 Days");
                 numberOfDays = 30;
                 new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
             }
@@ -106,6 +155,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         button_two_months.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                button_two_months.setBackgroundColor(Color.parseColor("#b5ffff"));
+                button_two_weeks.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_one_month.setBackgroundColor(Color.parseColor("#80d6ff"));
+                button_one_week.setBackgroundColor(Color.parseColor("#80d6ff"));
+                textview_graph_info.setText("Last 60 Days");
                 numberOfDays = 60;
                 new RetrieveHistory(numberOfDays).execute(activeCryptocurrency);
             }
@@ -118,31 +172,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        toggleButton = (Switch) findViewById(R.id.switch_rand);
-        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked)
-                {
-                    rand = true;
-                    performTask(false);
-                }
-                else
-                {
-                    rand = false;
-                    performTask(false);
-                }
-            }
-        });
-
         activeCryptocurrency = cryptocurrencyList[0];
-
-        textview_coin = (TextView)findViewById(R.id.textview_coin);
-        textview_coin.setText("");
-        textview_price = (TextView)findViewById(R.id.textview_price);
-        textview_price.setText("");
-        graph_title = (TextView)findViewById(R.id.graph_title);
-        graph_title.setText("");
 
         logo = (ImageView)findViewById(R.id.imageView_logo);
         logo.setImageResource(getLogoID(activeCryptocurrency));
@@ -190,14 +220,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         XAxis xAxis = mainGraph.getXAxis();
         xAxis.setValueFormatter(formatter);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawGridLines(false);
+        xAxis.setTextColor(Color.WHITE);
+
+        YAxis leftYAxis = mainGraph.getAxisLeft();
+        YAxis rightYAxis = mainGraph.getAxisRight();
+        leftYAxis.setTextColor(Color.WHITE);
+        rightYAxis.setTextColor(Color.WHITE);
 
         LineDataSet dataSet = new LineDataSet(graphEntries, null);
         dataSet.setLineWidth(2);
-        dataSet.setColor(Color.parseColor("#64b5f6"));
+        dataSet.setColor(Color.parseColor("#80d6ff"));
         dataSet.setValueTextSize(8);
         dataSet.setCircleRadius(5);
-        dataSet.setCircleColor(Color.parseColor("#0077c2"));
+        dataSet.setCircleColor(Color.parseColor("#26c6da"));
 
         LineData lineData = new LineData(dataSet);
         lineData.setDrawValues(false);
@@ -304,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         protected void onPreExecute()
         {
             progressBar.setVisibility(View.VISIBLE);
-            graph_title.setText(activeCryptocurrency.getName() + " Price Graph");
+            textview_graph_title.setText(activeCryptocurrency.getName() + " Price Graph");
         }
 
         @Override
@@ -346,7 +381,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             float[] values = ch.getPrices(numDays);
             long[] timestamps = ch.getTimestamps(numDays);
             progressBar.setVisibility(View.GONE);
-            graph_title.setText(ch.getCryptocurrency().getName() + " Price Graph");
+            textview_graph_title.setText(ch.getCryptocurrency().getName() + " Price Graph");
             populateGraph(values, timestamps);
         }
     }
