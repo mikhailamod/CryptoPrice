@@ -3,6 +3,8 @@ An android app to track cryptocurrency prices and check graphs.
 
 My idea is to create a simple and clean interface using Material Design.
 
+![alt text](https://user-images.githubusercontent.com/26596371/31682685-254efa1a-b37b-11e7-8e0b-ebfdfd778c75.png)
+
 What will it do at release?
 1. View the current price of any of your 5 favourite cryptos in US Dollars or local currency.
 2. View a graph of the crypto for the last 24 hours, 3, 7, 14, 30 and 60 days. 
