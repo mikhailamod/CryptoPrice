@@ -1,4 +1,4 @@
-# BitcoinPrice - not the final name
+# CryptoPrice - not the final name
 An android app to track cryptocurrency prices and check graphs.
 
 My idea is to create a simple and clean interface using Material Design.
