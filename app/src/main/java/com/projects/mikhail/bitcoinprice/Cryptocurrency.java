@@ -10,8 +10,8 @@ public class Cryptocurrency
 {
     //Attributes
     String name;
-    String id;
-    String symbol;
+    String id;//id used in API's to identify cryptos
+    String symbol;//symbol used in APIs to identify cryptos
     float currentPrice;
     int logo_id;
 

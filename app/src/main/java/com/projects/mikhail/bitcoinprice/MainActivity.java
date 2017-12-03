@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     Cryptocurrency[] cryptocurrencyList = {new Cryptocurrency("Bitcoin", "bitcoin", "btc"), new Cryptocurrency("Ethereum", "ethereum", "eth"), new Cryptocurrency("OmiseGO", "omisego", "omg"),
                                             new Cryptocurrency("Bitcoin Cash", "bitcoin-cash", "bch"), new Cryptocurrency("Power Ledger", "power-ledger", "powr")};
-    Cryptocurrency activeCryptocurrency;
+    Cryptocurrency activeCryptocurrency;//the currently selected crypto
     int numberOfDays;
 
     @Override
@@ -181,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         spinner.setOnItemSelectedListener(this);
     }
 
+    //convert cryptocurrency id into the string format of the logo files, then return int of id
     public int getLogoID(Cryptocurrency cryptocurrency)
     {
         String logoID = "logo_" + cryptocurrency.getId();
@@ -189,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return resID;
     }
 
+    //Refresh price, and grahp is parameter is true
     public void performTask(boolean graph)
     {
         textview_coin.setText("");
@@ -200,6 +202,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
+    //given a set of values and timestamps, populate the LineChart
     public void populateGraph(float[] values, long[] timestamps)
     {
         String[] xAxisValues = new String[numberOfDays];//The array to hold the axis labels
@@ -257,16 +260,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         String label = parent.getItemAtPosition(position).toString().toLowerCase();
         label = label.replaceAll(" ", "-");
-        System.out.println("DEBUG----------label-: " + label);
+        //System.out.println("DEBUG----------label-: " + label);
         for(int i = 0; i< cryptocurrencyList.length; i++)
         {
             if(label.equals(cryptocurrencyList[i].getId()))
             {
                 activeCryptocurrency = cryptocurrencyList[i];
-                System.out.println("DEBUG----------asas-: " + activeCryptocurrency.getId());
+                //System.out.println("DEBUG----------asas-: " + activeCryptocurrency.getId());
             }
         }
-        performTask(true);
+        performTask(true);//set graph to chosen crypto
     }
 
     @Override
