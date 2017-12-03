@@ -4,5 +4,7 @@
         <item>Bitcoin</item>
         <item>Ethereum</item>
         <item>OmiseGO</item>
+        <item>Bitcoin Cash</item>
+        <item>Power Ledger</item>
     </string-array>
 </resources>
